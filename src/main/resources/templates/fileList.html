@@ -1,0 +1,17 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+    <div>
+        <h2>DownLoad</h2>
+    </div>
+    
+    <div>
+        <ul>
+            <li th:each="file : ${files}">
+                <a th:href="${file.value}" th:text="${file.key}" style="font-size:20px"/>
+            </li>
+        </ul>
+    </div>
+
+</body>
+</html>
