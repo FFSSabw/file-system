@@ -42,7 +42,11 @@ public class FileSystemStorageServiceImpl implements StorageService{
     }
 
     @Override
-    public void store(MultipartFile file) {
+    public Path store(MultipartFile file, String storeUri) {
+        Path path = getPath(storeUri);
+        if(!path.toFile().isDirectory()) {
+            throw new StorageException("path is not directory");
+        }
         String filename = StringUtils.cleanPath(file.getOriginalFilename());
         if(file.isEmpty()) {
             throw new StorageException("file is empty: " + filename);
@@ -51,8 +55,9 @@ public class FileSystemStorageServiceImpl implements StorageService{
             throw new StorageException("Cannot store file with relative path: " + filename);
         }
         try(InputStream inputStream = file.getInputStream()) {
-            Files.copy(inputStream, rootLocation.resolve(filename), 
+            Files.copy(inputStream, path.resolve(filename), 
                 StandardCopyOption.REPLACE_EXISTING);
+            return path;
         } catch (IOException e) {
             throw new StorageException("Failed to store file " + filename);
         }
@@ -77,16 +82,14 @@ public class FileSystemStorageServiceImpl implements StorageService{
     
     @Override
     public Stream<Path> loadAll(String uri) {
-        if(StringUtils.isEmpty(uri)) return loadAll(rootLocation);
-        uri = StringUtils.cleanPath(uri);
-        Path path = Paths.get(uri);
+        Path path = getPath(uri);
         return loadAll(path);
     }
     
     
     @Override
     public Path load(String uri) {
-        return Paths.get(uri);
+        return getPath(uri);
     }
 
     @Override
@@ -107,7 +110,11 @@ public class FileSystemStorageServiceImpl implements StorageService{
     public void deleteAll() {
         FileSystemUtils.deleteRecursively(rootLocation.toFile());
     }
-
     
-
+    @Override
+    public Path getPath(String uri) {
+        if(StringUtils.isEmpty(uri)) return rootLocation;
+        return Paths.get(StringUtils.cleanPath(uri));
+    }
+    
 }
