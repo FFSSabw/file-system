@@ -6,6 +6,8 @@ import java.util.stream.Stream;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.ffssabcloud.file_system.exception.MkdirException;
+
 public interface StorageService {
     
     void init();
@@ -14,13 +16,15 @@ public interface StorageService {
     
     Stream<Path> loadAll(Path path);
     
-    Stream<Path> loadAll(String uri);
+    Stream<Path> loadAll(String url);
     
-    Path load(String uri);
+    Path load(String url);
     
     Resource loadAsResource(String filename);
     
     void deleteAll();
     
-    Path getPath(String uri);
+    Path getPath(String url);
+    
+    Path newDir(String dirName, String url) throws MkdirException;
 }

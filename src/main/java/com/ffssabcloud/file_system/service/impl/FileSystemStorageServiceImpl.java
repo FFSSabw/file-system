@@ -1,5 +1,6 @@
 package com.ffssabcloud.file_system.service.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -18,6 +19,8 @@ import org.springframework.util.FileSystemUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.ffssabcloud.file_system.exception.MkdirException;
+import com.ffssabcloud.file_system.exception.MkdirExistedException;
 import com.ffssabcloud.file_system.exception.StorageException;
 import com.ffssabcloud.file_system.exception.StorageFileNotFoundException;
 import com.ffssabcloud.file_system.service.StorageService;
@@ -42,8 +45,8 @@ public class FileSystemStorageServiceImpl implements StorageService{
     }
 
     @Override
-    public Path store(MultipartFile file, String storeUri) {
-        Path path = getPath(storeUri);
+    public Path store(MultipartFile file, String storeUrl) {
+        Path path = getPath(storeUrl);
         if(!path.toFile().isDirectory()) {
             throw new StorageException("path is not directory");
         }
@@ -81,15 +84,15 @@ public class FileSystemStorageServiceImpl implements StorageService{
     }
     
     @Override
-    public Stream<Path> loadAll(String uri) {
-        Path path = getPath(uri);
+    public Stream<Path> loadAll(String url) {
+        Path path = getPath(url);
         return loadAll(path);
     }
     
     
     @Override
-    public Path load(String uri) {
-        return getPath(uri);
+    public Path load(String url) {
+        return getPath(url);
     }
 
     @Override
@@ -112,9 +115,19 @@ public class FileSystemStorageServiceImpl implements StorageService{
     }
     
     @Override
-    public Path getPath(String uri) {
-        if(StringUtils.isEmpty(uri)) return rootLocation;
-        return Paths.get(StringUtils.cleanPath(uri));
+    public Path getPath(String url) {
+        if(StringUtils.isEmpty(url)) return rootLocation;
+        return Paths.get(StringUtils.cleanPath(url));
+    }
+
+    @Override
+    public Path newDir(String dirName, String url) throws MkdirException{
+        if(StringUtils.isEmpty(dirName)) throw new MkdirException("dirName is empty");
+        Path path = getPath(url);
+        File dirFile = path.resolve(dirName).toFile();
+        if(dirFile.exists()) throw new MkdirExistedException("dir is existed");
+        dirFile.mkdir();
+        return path;
     }
     
 }

@@ -1,5 +1,10 @@
 package com.ffssabcloud.file_system.controller;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.util.AntPathMatcher;
@@ -13,6 +18,13 @@ public class BaseController {
         String bestMatchPattern = (String) request.getAttribute(HandlerMapping
                 .BEST_MATCHING_PATTERN_ATTRIBUTE);
         return new AntPathMatcher().extractPathWithinPattern(bestMatchPattern, path);
+    }
+    
+    protected String encodeURL(String raw, String enc) throws UnsupportedEncodingException {
+        List<String> temps = new ArrayList<>();
+        for(String s : raw.split("/"))
+            temps.add(URLEncoder.encode(s, enc));
+        return String.join("/", temps);
     }
     
     protected class Entity<K, V> {
