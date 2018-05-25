@@ -1,9 +1,7 @@
 package com.ffssabcloud.file_system.controller;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -11,13 +9,12 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,6 +24,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.ffssabcloud.file_system.exception.MkdirException;
 import com.ffssabcloud.file_system.exception.MkdirExistedException;
+import com.ffssabcloud.file_system.exception.StorageException;
+import com.ffssabcloud.file_system.exception.StorageFileNotFoundException;
 import com.ffssabcloud.file_system.model.RestResponseBo;
 import com.ffssabcloud.file_system.service.StorageService;
 
@@ -49,7 +48,7 @@ public class FileController extends BaseController{
     public String showFiles(Model model, HttpServletRequest request) {
         String fileUrl = extractPathFromPattern(request);
         Path parentPath = storageService.getPath(fileUrl).getParent();
-        List<Entity> entitys = storageService.loadAll(fileUrl).map(
+        List<Entity<String, String>> entitys = storageService.loadAll(fileUrl).map(
                 path -> {
                     String prefix, uri, filename, 
                         suffix = "";
@@ -66,6 +65,7 @@ public class FileController extends BaseController{
         return "fileList";
     }
     
+    @SuppressWarnings("rawtypes")
     @PostMapping("/dirs/**")
     @ResponseBody
     public RestResponseBo newDir(@RequestParam String name, HttpServletRequest request) {
@@ -98,5 +98,15 @@ public class FileController extends BaseController{
         storedUrl = StringUtils.cleanPath(storedUrl);
         Path storedPath = storageService.store(file, storedUrl);
         return "redirect:/dirs/" + encodeURL(storedPath.toString(), "UTF-8");
+    }
+    
+    @ExceptionHandler(StorageException.class)
+    public String handlerStorageException(Model model, StorageException e) {
+        String msg;
+        if(e instanceof StorageFileNotFoundException) msg = "未找到相应文件";
+        else if(e instanceof StorageException) msg = "未知原因不能读取文件";
+        else msg = "未知错误";
+        model.addAttribute("message", msg);
+        return "400";
     }
 }

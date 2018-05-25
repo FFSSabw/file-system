@@ -77,7 +77,6 @@ public class FileSystemStorageServiceImpl implements StorageService{
                 stream = temp.stream();
             }
             return stream;
-            
         } catch (IOException e) {
             throw new StorageException("Faild to load stored files");
         }

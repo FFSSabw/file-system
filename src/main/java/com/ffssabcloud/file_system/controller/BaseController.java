@@ -1,18 +1,18 @@
 package com.ffssabcloud.file_system.controller;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.util.AntPathMatcher;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerMapping;
 
 public class BaseController {
     
-    protected String extractPathFromPattern(final HttpServletRequest request) {
+    protected static String extractPathFromPattern(final HttpServletRequest request) {
         String path = (String) request.getAttribute(HandlerMapping
                 .PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         String bestMatchPattern = (String) request.getAttribute(HandlerMapping
@@ -20,11 +20,20 @@ public class BaseController {
         return new AntPathMatcher().extractPathWithinPattern(bestMatchPattern, path);
     }
     
-    protected String encodeURL(String raw, String enc) throws UnsupportedEncodingException {
-        List<String> temps = new ArrayList<>();
-        for(String s : raw.split("/"))
-            temps.add(URLEncoder.encode(s, enc));
-        return String.join("/", temps);
+    protected static String encodeURL(String raw, String enc) {
+        Stream<String> splited = Arrays.asList(raw.split("/")).stream();
+        return splited.filter(str -> !StringUtils.isEmpty(str))
+                .map(str -> tryEncodeURL(str, enc))
+                .reduce((sum, item) -> String.format("%s/%s", sum, item)).get();
+    }
+    
+    private static String tryEncodeURL(String raw, String enc) {
+        try {
+            return URLEncoder.encode(raw, enc);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
     
     protected class Entity<K, V> {
@@ -37,6 +46,14 @@ public class BaseController {
             value = v;
         }
         
+        public void setKey(K key) {
+            this.key = key;
+        }
+
+        public void setValue(V value) {
+            this.value = value;
+        }
+
         public K getKey() {
             return key;
         }
@@ -44,5 +61,14 @@ public class BaseController {
         public V getValue() {
             return value;
         }
+    }
+    
+    public static void main(String[] args) {
+        System.out.println(encodeURL("abc/qwe/你好", "UTF-8"));
+        System.out.println(encodeURL("abc/qwe/你好/", "UTF-8"));
+        System.out.println(encodeURL("/abc/qwe/你好", "UTF-8"));
+        System.out.println(encodeURL("/abc/qwe/你好/", "UTF-8"));
+        System.out.println(encodeURL("/abc/qwe//你好/", "UTF-8"));
+        System.out.println(encodeURL("/abc///qwe//你好/", "UTF-8"));
     }
 }

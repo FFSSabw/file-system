@@ -7,6 +7,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.ffssabcloud.file_system.exception.MkdirException;
+import com.ffssabcloud.file_system.exception.StorageFileNotFoundException;
 
 public interface StorageService {
     
@@ -27,4 +28,5 @@ public interface StorageService {
     Path getPath(String url);
     
     Path newDir(String dirName, String url) throws MkdirException;
+    
 }
