@@ -63,12 +63,4 @@ public class BaseController {
         }
     }
     
-    public static void main(String[] args) {
-        System.out.println(encodeURL("abc/qwe/你好", "UTF-8"));
-        System.out.println(encodeURL("abc/qwe/你好/", "UTF-8"));
-        System.out.println(encodeURL("/abc/qwe/你好", "UTF-8"));
-        System.out.println(encodeURL("/abc/qwe/你好/", "UTF-8"));
-        System.out.println(encodeURL("/abc/qwe//你好/", "UTF-8"));
-        System.out.println(encodeURL("/abc///qwe//你好/", "UTF-8"));
-    }
 }

@@ -13,9 +13,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -95,16 +96,28 @@ public class FileController extends BaseController{
     public String storeFile(MultipartFile file, Model model, HttpServletRequest request, 
             RedirectAttributes redirect) throws UnsupportedEncodingException {
         String storedUrl = extractPathFromPattern(request);
-        storedUrl = StringUtils.cleanPath(storedUrl);
         Path storedPath = storageService.store(file, storedUrl);
         return "redirect:/dirs/" + encodeURL(storedPath.toString(), "UTF-8");
+    }
+    
+    @SuppressWarnings("rawtypes")
+    @DeleteMapping("/{prefix:files|dirs}/**")
+    @ResponseBody
+    public RestResponseBo deleteFile(@PathVariable String prefix, HttpServletRequest request) {
+        String url = extractPathFromPattern(request);
+        try {
+            storageService.delete(url);
+        } catch (Exception e) {
+            return RestResponseBo.fail(e.getMessage());
+        }
+        return RestResponseBo.ok();
     }
     
     @ExceptionHandler(StorageException.class)
     public String handlerStorageException(Model model, StorageException e) {
         String msg;
         if(e instanceof StorageFileNotFoundException) msg = "未找到相应文件";
-        else if(e instanceof StorageException) msg = "未知原因不能读取文件";
+        else if(e instanceof StorageException) msg = e.getMessage();
         else msg = "未知错误";
         model.addAttribute("message", msg);
         return "400";

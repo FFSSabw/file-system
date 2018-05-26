@@ -46,7 +46,7 @@ public class FileSystemStorageServiceImpl implements StorageService{
 
     @Override
     public Path store(MultipartFile file, String storeUrl) {
-        Path path = getPath(storeUrl);
+        Path path = getPath(StringUtils.cleanPath(storeUrl));
         if(!path.toFile().isDirectory()) {
             throw new StorageException("path is not directory");
         }
@@ -107,10 +107,21 @@ public class FileSystemStorageServiceImpl implements StorageService{
             throw new StorageFileNotFoundException("Could not read file: " + filename, e);
         }
     }
-
+    
     @Override
-    public void deleteAll() {
-        FileSystemUtils.deleteRecursively(rootLocation.toFile());
+    public void delete(String url) throws Exception {
+        Path path = getPath(url);
+        if(rootLocation.equals(path)) 
+            throw new Exception("do not permission to delete root");
+        if(path.toFile().isDirectory())
+            deleteAll(path); 
+        else 
+            path.toFile().delete();
+    }
+    
+    @Override
+    public void deleteAll(Path path) {
+        FileSystemUtils.deleteRecursively(path.toFile());
     }
     
     @Override

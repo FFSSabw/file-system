@@ -1,42 +1,45 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <body>
-    <div>
-        <h1>DownLoad</h1>
-    </div>
-
-    <div>
-        新建文件夹:
-        <button onclick="new_dir()">new</button>
-    </div>
-
-    <div>
-        <form id="file" method="POST" enctype="multipart/form-data">
-            <table>
-                <tr>
-                    <td>选择文件: </td>
-                    <td>
-                        <input type="file" name="file" />
+    <div style="margin:0 auto;width:600px">
+        <div>
+            <h1>DownLoad</h1>
+        </div>
+        <div>
+            <div>
+                新建文件夹:
+                <button onclick="new_dir()">new</button>
+            </div>
+            <div>
+                <form id="file" method="POST" enctype="multipart/form-data">
+                    <table>
+                        <tr>
+                            <td>选择文件: </td>
+                            <td>
+                                <input type="file" name="file" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>
+                                <input type="submit" value="上传" />
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+        </div>
+        <div>
+            <table table border="1" cellspacing="0" cellpadding="0" style="width:500px">
+                <tr th:each="file : ${files}">
+                    <td style="width:463px">
+                        <a th:href="${file.value}" th:text="${file.key}" style="font-size:20px;padding-left:3px" />
                     </td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td>
-                        <input type="submit" value="上传" />
-                    </td>
+                    <td th:if="${file.key} ne .."><a th:onclick="'javascript:del(\''+${file.value}+'\');'" style="padding-left:3px;color:#0000CD;cursor:pointer;">del</a></td>
                 </tr>
             </table>
-        </form>
+        </div>
     </div>
-
-    <div>
-        <ul>
-            <li th:each="file : ${files}">
-                <a th:href="${file.value}" th:text="${file.key}" style="font-size:20px" />
-            </li>
-        </ul>
-    </div>
-    
     <script th:src="@{//cdn.bootcss.com/jquery/2.2.3/jquery.min.js}"></script>
     <script type="text/javascript">
     function init_action() {
@@ -46,11 +49,34 @@
 
     function new_dir() {
         var name = prompt("请输入文件夹的名字", "untitle")
-        if (name == "" || name == null) return
+        if(name == "" || name == null) return
         $.ajax({
             type: 'post',
             url: window.location.pathname,
             data: 'name=' + name,
+            async: false,
+            dataType: 'json',
+            success: function(result) {
+                if (result && result.success)
+                    location.reload()
+                else
+                    alert(result.msg)
+            },
+            error: function(result) {
+                if (result.msg)
+                    alert(result.msg)
+            }
+        })
+    }
+
+    function del(url) {
+        if(!confirm('确认要删除吗?')) return
+        if(url.startsWith('/dirs')) {
+        	if(!confirm('这是文件夹,确定要删除吗?')) return
+        }
+        $.ajax({
+            type: 'delete',
+            url: url,
             async: false,
             dataType: 'json',
             success: function(result) {

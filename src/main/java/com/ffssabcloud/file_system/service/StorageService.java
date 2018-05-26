@@ -7,7 +7,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.ffssabcloud.file_system.exception.MkdirException;
-import com.ffssabcloud.file_system.exception.StorageFileNotFoundException;
 
 public interface StorageService {
     
@@ -23,7 +22,9 @@ public interface StorageService {
     
     Resource loadAsResource(String filename);
     
-    void deleteAll();
+    void delete(String url) throws Exception;
+    
+    void deleteAll(Path path);
     
     Path getPath(String url);
     
