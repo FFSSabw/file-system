@@ -1,4 +1,4 @@
-package com.ffssabcloud.file_system.controller;
+package com.ffssabcloud.file_system.controller.store;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.ffssabcloud.file_system.controller.BaseController;
 import com.ffssabcloud.file_system.exception.MkdirException;
 import com.ffssabcloud.file_system.exception.MkdirExistedException;
 import com.ffssabcloud.file_system.exception.StorageException;
@@ -46,7 +48,7 @@ public class FileController extends BaseController{
     }
     
     @GetMapping("/dirs/**")
-    public String showFiles(Model model, HttpServletRequest request) {
+    public String showFiles(Model model, HttpServletRequest request, HttpSession session) {
         String fileUrl = extractPathFromPattern(request);
         Path parentPath = storageService.getPath(fileUrl).getParent();
         List<Entity<String, String>> entitys = storageService.loadAll(fileUrl).map(
@@ -63,6 +65,7 @@ public class FileController extends BaseController{
                             path.equals(parentPath) ? ".." : filename, uri);
                 }).collect(Collectors.toList());
         model.addAttribute("files", entitys);
+        model.addAttribute("authenticated", session.getAttribute("authenticated"));
         return "fileList";
     }
     

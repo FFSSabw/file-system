@@ -5,11 +5,21 @@
         <div>
             <h1>DownLoad</h1>
         </div>
-        <div>
+        <div th:if="${authenticated}">
+        
+            <div>
+                <form th:action="@{/logout}" method="post">
+                    logout:
+                    <input type="submit" value="Log out" />
+                </form>
+            </div>
+            
             <div>
                 新建文件夹:
                 <button onclick="new_dir()">new</button>
+                
             </div>
+            
             <div>
                 <form id="file" method="POST" enctype="multipart/form-data">
                     <table>
@@ -28,6 +38,7 @@
                     </table>
                 </form>
             </div>
+            
         </div>
         <div>
             <table table border="1" cellspacing="0" cellpadding="0" style="width:500px">
