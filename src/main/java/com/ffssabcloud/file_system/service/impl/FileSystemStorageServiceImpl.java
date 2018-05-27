@@ -69,14 +69,18 @@ public class FileSystemStorageServiceImpl implements StorageService{
     @Override
     public Stream<Path> loadAll(Path p) {
         try {
-            Stream<Path> stream = Files.walk(p, 1)
-                        .filter(path -> !p.equals(path));
-            if(!rootLocation.equals(p)) {
-                List<Path> temp = stream.collect(Collectors.toList());
+            Stream<Path> dirStream = Files.walk(p, 1)
+                        .filter(path -> !p.equals(path))
+                        .filter(path -> path.toFile().isDirectory())
+                        .sorted((x, y) -> PathComparator.compareFileName(x, y));
+            Stream<Path> fileStream = Files.walk(p, 1)
+                        .filter(path -> path.toFile().isFile())
+                        .sorted((x, y) -> PathComparator.compareFileName(x, y));
+            List<Path> temp = dirStream.collect(Collectors.toList());
+            temp.addAll(fileStream.collect(Collectors.toList()));
+            if(!rootLocation.equals(p))
                 temp.add(0, p.getParent());
-                stream = temp.stream();
-            }
-            return stream;
+            return temp.stream();
         } catch (IOException e) {
             throw new StorageException("Faild to load stored files");
         }
@@ -138,6 +142,35 @@ public class FileSystemStorageServiceImpl implements StorageService{
         if(dirFile.exists()) throw new MkdirExistedException("dir is existed");
         dirFile.mkdir();
         return path;
+    }
+    
+    private static class PathComparator {
+
+        public static int compareDirAndFile(Path x, Path y) {
+            if(allDir(x, y) || allFile(x, y))
+                return 0;
+            else if(x.toFile().isDirectory())
+                return -1;
+            else
+                return 1;
+        }
+        
+        public static int compareFileName(Path x, Path y) {
+            return x.getFileName().compareTo(y.getFileName());
+        }
+        
+        public static boolean allDir(Path x, Path y) {
+            if(x.toFile().isDirectory() && y.toFile().isDirectory())
+                return true;
+            return false;
+        }
+        
+        public static boolean allFile(Path x, Path y) {
+            if(x.toFile().isFile() && y.toFile().isFile())
+                return true;
+            return false;
+        }
+        
     }
     
 }
